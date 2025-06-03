@@ -1,0 +1,15 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "postgres",
+    "user": "postgres",
+    "password": "postgres",
+    "maxPoolSize": 50
+  },
+  "server": {
+    "http": {
+      "port": 8080
+    }
+  }
+}

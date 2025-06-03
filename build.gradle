@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id 'org.openapi.generator' version "$orgOpenapiGenerator"
+}
+
+group = 'ru.ersted'
+version = '0.0.1'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of("$javaVersion")
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-web:$vertxVersion"
+    implementation "io.vertx:vertx-config:$vertxVersion"
+    implementation "io.vertx:vertx-pg-client:$vertxVersion"
+
+    testImplementation platform("org.junit:junit-bom:$orgJunitJunitBom")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // FLYWAY
+    implementation "org.flywaydb:flyway-core:$flywayVersion"
+    implementation "org.flywaydb:flyway-database-postgresql:$flywayVersion"
+    implementation "org.postgresql:postgresql:$orgPostgresqlPostgresql"
+
+    // OPENAPI
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$comFasterxmlJacksonCoreJacksonAnnotations"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$comFasterxmlJacksonCoreJacksonDatabind"
+    compileOnly "jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationJakartaAnnotationApi"
+
+
+    // MAPSTRUCT
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBinding"
+
+    // LOMBOK
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    // DATABASE Utils
+    implementation "com.ongres.scram:client:$comOngresScramClient"
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+openApiGenerate {
+    generatorName = 'java'
+    inputSpec = file('src/main/resources/api/openapi.yaml')
+            .toURI()
+            .toString()
+    outputDir = layout.buildDirectory
+            .dir('generated')
+            .get().asFile.absolutePath
+
+    modelPackage = 'ru.ersted.module_2vertx.dto.generated'
+    apiPackage = 'com.example.stub.api'
+
+    globalProperties = [models: '']
+
+    configOptions = [
+            useJakartaEe              : 'true',
+            constructorWithAllArgs     : 'true',
+            dateLibrary               : 'java8',
+            library                   : 'resttemplate',
+            generateModelTests        : 'false',
+            generateModelDocumentation: 'false',
+            generateApiTests          : 'false',
+            generateApiDocumentation  : 'false'
+    ]
+}
+
+compileJava {
+    dependsOn tasks.openApiGenerate
+    source layout.buildDirectory.dir('generated/src/main/java')
+}
