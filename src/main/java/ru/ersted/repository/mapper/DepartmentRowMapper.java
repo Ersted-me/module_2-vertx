@@ -3,18 +3,19 @@ package ru.ersted.repository.mapper;
 import io.vertx.sqlclient.Row;
 import ru.ersted.model.Department;
 
-public class DepartmentRowMapper {
-    private DepartmentRowMapper() {
-    }
+import static ru.ersted.repository.constant.DepartmentColumn.*;
 
-    public static Department map(Row row) {
-        Department.DepartmentBuilder departmentBuilder = Department.builder();
 
-        departmentBuilder.id(row.getLong("id"));
-        departmentBuilder.name(row.getString("name"));
-        departmentBuilder.headOfDepartmentId(row.getLong("head_of_department_id"));
+public class DepartmentRowMapper extends AbstractRowMapper<Department> {
 
-        return departmentBuilder.build();
+    @Override
+    public Department map(Row row) {
+
+        return Department.builder()
+                .id(safe(() -> row.getLong(ID)))
+                .name(safe(() -> row.getString(NAME)))
+                .headOfDepartmentId(safe(() -> row.getLong(HEAD_OF_DEPARTMENT_ID)))
+                .build();
     }
 
 }

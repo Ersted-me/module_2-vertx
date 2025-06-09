@@ -4,9 +4,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import ru.ersted.exception.DuplicateException;
 import ru.ersted.exception.NotFoundException;
-import ru.ersted.util.ApiResponse;
 import ru.ersted.module_2vertx.dto.generated.ExceptionResponse;
+import ru.ersted.util.ApiResponse;
 
 import java.time.OffsetDateTime;
 
@@ -21,6 +22,8 @@ public class GlobalErrorHandler implements Handler<RoutingContext> {
 
         if (cause instanceof NotFoundException) {
             status = HttpResponseStatus.NOT_FOUND;
+        } else if (cause instanceof DuplicateException) {
+            status = HttpResponseStatus.CONFLICT;
         } else {
             log.error("Unhandled exception", cause);
             status = HttpResponseStatus.INTERNAL_SERVER_ERROR;

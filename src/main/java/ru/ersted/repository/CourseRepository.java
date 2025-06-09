@@ -1,111 +1,65 @@
 package ru.ersted.repository;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.sqlclient.Pool;
-import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.Tuple;
+import lombok.RequiredArgsConstructor;
+import ru.ersted.exception.NotFoundException;
 import ru.ersted.model.Course;
+import ru.ersted.repository.constant.CourseColumn;
+import ru.ersted.repository.mapper.RowMapper;
+import ru.ersted.util.RowMapperUtils;
+import ru.ersted.util.RowSetUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static ru.ersted.repository.mapper.CourseRowMapper.map;
+import static ru.ersted.repository.query.CourseQueryProvider.*;
 
+
+@RequiredArgsConstructor
 public class CourseRepository {
+
     private final Pool client;
 
-    public CourseRepository(Pool client) {
-        this.client = client;
-    }
+    private final RowMapper<Course> rowMapper;
 
 
     public Future<Course> save(Course entity) {
-        final String SAVE_SQL = "INSERT INTO course (title, teacher_id) VALUES ($1, $2) RETURNING id;";
-        return client.preparedQuery(SAVE_SQL)
+        return client.preparedQuery(INSERT)
                 .execute(Tuple.of(entity.getTitle(), entity.getTeacherId()))
                 .map(rows -> {
-                    entity.setId(rows.iterator().next().getLong("id"));
+                    entity.setId(rows.iterator().next().getLong(CourseColumn.ID));
                     return entity;
                 });
     }
 
     public Future<List<Course>> getAll(int limit, int offset) {
-        Promise<List<Course>> promise = Promise.promise();
-
-        String query = "SELECT * FROM course LIMIT $1 OFFSET $2";
-
-        client.preparedQuery(query)
+        return client.preparedQuery(SELECT_ALL)
                 .execute(Tuple.of(limit, offset))
-                .onSuccess(rows -> {
-                    List<Course> courses = new ArrayList<>();
-                    for (Row row : rows) {
-                        Course course = map(row);
-                        courses.add(course);
-                    }
-                    promise.complete(courses);
-                })
-                .onFailure(promise::fail);
-
-        return promise.future();
+                .map(rows -> RowMapperUtils.toList(rows, rowMapper));
     }
 
     public Future<Void> assigningTeacher(Long coursesId, Long teacherId) {
-        Promise<Void> promise = Promise.promise();
-
-        final String ASSIGN_TEACHER_TO_COURSE = "UPDATE course SET teacher_id = $1 WHERE id = $2";
-
-        client.preparedQuery(ASSIGN_TEACHER_TO_COURSE)
+        return client.preparedQuery(UPDATE_TEACHER_ID)
                 .execute(Tuple.of(teacherId, coursesId))
-                .onSuccess(rows -> {
-                    if (rows.rowCount() == 0) {
-                        promise.fail("Course with id " + coursesId + " does not exist");
-                    } else {
-                        promise.complete();
-                    }
-                })
-                .onFailure(promise::fail);
-
-        return promise.future();
+                .map(rows -> RowSetUtils.requireRowsAffected(rows,
+                        () -> new NotFoundException("Course with id '%s' not found".formatted(coursesId))
+                ));
     }
 
     public Future<Course> findById(Long coursesId) {
-        Promise<Course> promise = Promise.promise();
-
-        final String FIND_BY_ID_SQL = "SELECT * FROM course WHERE id = $1";
-
-        client.preparedQuery(FIND_BY_ID_SQL)
+        return client.preparedQuery(SELECT_BY_ID)
                 .execute(Tuple.of(coursesId))
-                .onSuccess(rows -> {
-                    if (rows.iterator().hasNext()) {
-                        Course course = map(rows.iterator().next());
-                        promise.complete(course);
-                    } else {
-                        promise.fail("Course with id " + coursesId + " does not exist");
-                    }
-                })
-                .onFailure(promise::fail);
-
-        return promise.future();
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper)
+                        .orElseThrow(() -> new NotFoundException("Course with id '%s' not found".formatted(coursesId)))
+                );
     }
 
     public Future<List<Course>> findByTeacherId(Long teacherId) {
-        Promise<List<Course>> promise = Promise.promise();
-
-        final String FIND_BY_TEACHER_SQL = "SELECT * FROM course WHERE teacher_id = $1";
-
-        client.preparedQuery(FIND_BY_TEACHER_SQL)
+        return client.preparedQuery(FIND_BY_TEACHER_ID)
                 .execute(Tuple.of(teacherId))
-                .onSuccess(rows -> {
-                    List<Course> courses = new ArrayList<>();
-                    for (Row row : rows) {
-                        Course course = map(row);
-                        courses.add(course);
-                    }
-                    promise.complete(courses);
-                })
-                .onFailure(promise::fail);
+                .map(rows -> RowMapperUtils.toList(rows, rowMapper));
 
-        return promise.future();
     }
+
 }

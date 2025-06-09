@@ -7,7 +7,7 @@ import ru.ersted.module_2vertx.dto.generated.TeacherCreateRq;
 import ru.ersted.service.CourseService;
 import ru.ersted.service.TeacherService;
 import ru.ersted.util.ApiResponse;
-import ru.ersted.util.ParserUtil;
+import ru.ersted.util.ParserUtils;
 
 @RequiredArgsConstructor
 public class TeacherHandler {
@@ -37,8 +37,8 @@ public class TeacherHandler {
     }
 
     public void findAll(RoutingContext context) {
-        int limit = ParserUtil.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtil.parseIntOrDefault(context.request().getParam("offset"), 0);
+        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
+        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
 
         teacherService.getAll(limit, offset)
                 .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))

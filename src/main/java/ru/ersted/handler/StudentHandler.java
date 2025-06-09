@@ -8,7 +8,7 @@ import ru.ersted.module_2vertx.dto.generated.StudentUpdateRq;
 import ru.ersted.service.EnrollmentService;
 import ru.ersted.service.StudentService;
 import ru.ersted.util.ApiResponse;
-import ru.ersted.util.ParserUtil;
+import ru.ersted.util.ParserUtils;
 
 @RequiredArgsConstructor
 public class StudentHandler {
@@ -28,8 +28,8 @@ public class StudentHandler {
     }
 
     public void getAll(RoutingContext context) {
-        int limit = ParserUtil.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtil.parseIntOrDefault(context.request().getParam("offset"), 0);
+        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
+        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
 
         studentService.getAll(limit, offset)
                 .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))

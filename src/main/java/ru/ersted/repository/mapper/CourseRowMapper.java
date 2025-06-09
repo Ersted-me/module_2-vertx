@@ -3,19 +3,18 @@ package ru.ersted.repository.mapper;
 import io.vertx.sqlclient.Row;
 import ru.ersted.model.Course;
 
-public class CourseRowMapper {
+import static ru.ersted.repository.constant.CourseColumn.*;
 
-    private CourseRowMapper() {
-    }
+public class CourseRowMapper extends AbstractRowMapper<Course> {
 
-    public static Course map(Row row) {
-        Course.CourseBuilder courseBuilder = Course.builder();
+    @Override
+    public Course map(Row row) {
 
-        courseBuilder.id(row.getLong("id"));
-        courseBuilder.title(row.getString("title"));
-        courseBuilder.teacherId(row.getLong("teacher_id"));
-
-        return courseBuilder.build();
+        return Course.builder()
+                .id(safe(() -> row.getLong(ID)))
+                .title(safe(() -> row.getString(TITLE)))
+                .teacherId(safe(() -> row.getLong(TEACHER_ID)))
+                .build();
     }
 
 }

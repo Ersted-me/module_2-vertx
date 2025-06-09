@@ -3,18 +3,18 @@ package ru.ersted.repository.mapper;
 import io.vertx.sqlclient.Row;
 import ru.ersted.model.Teacher;
 
-public class TeacherRowMapper {
+import static ru.ersted.repository.constant.TeacherColumn.*;
 
-    private TeacherRowMapper() {}
+public class TeacherRowMapper extends AbstractRowMapper<Teacher> {
 
-    public static Teacher map(Row row) {
-        Teacher.TeacherBuilder teacherBuilder = Teacher.builder();
+    @Override
+    public Teacher map(Row row) {
 
-        teacherBuilder.id(row.getLong("id"));
-        teacherBuilder.name(row.getString("name"));
-        teacherBuilder.departmentId(row.getLong("department_id"));
-
-        return teacherBuilder.build();
+        return Teacher.builder()
+                .id(safe(() -> row.getLong(ID)))
+                .name(safe(() -> row.getString(NAME)))
+                .departmentId(safe(() -> row.getLong(DEPARTMENT_ID)))
+                .build();
     }
 
 }

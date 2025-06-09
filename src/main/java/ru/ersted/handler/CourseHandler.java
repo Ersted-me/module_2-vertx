@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import ru.ersted.module_2vertx.dto.generated.CourseCreateRq;
 import ru.ersted.service.CourseService;
 import ru.ersted.util.ApiResponse;
-import ru.ersted.util.ParserUtil;
+import ru.ersted.util.ParserUtils;
 
 @RequiredArgsConstructor
 public class CourseHandler {
@@ -15,8 +15,8 @@ public class CourseHandler {
 
 
     public void getAll(RoutingContext context) {
-        int limit = ParserUtil.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtil.parseIntOrDefault(context.request().getParam("offset"), 0);
+        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
+        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
 
         courseService.getAll(limit, offset)
                 .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))

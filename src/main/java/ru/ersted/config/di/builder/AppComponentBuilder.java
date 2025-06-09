@@ -10,6 +10,10 @@ import ru.ersted.handler.DepartmentHandler;
 import ru.ersted.handler.StudentHandler;
 import ru.ersted.handler.TeacherHandler;
 import ru.ersted.repository.*;
+import ru.ersted.repository.mapper.CourseRowMapper;
+import ru.ersted.repository.mapper.DepartmentRowMapper;
+import ru.ersted.repository.mapper.StudentRowMapper;
+import ru.ersted.repository.mapper.TeacherRowMapper;
 import ru.ersted.service.*;
 
 public final class AppComponentBuilder {
@@ -17,7 +21,8 @@ public final class AppComponentBuilder {
     public static ServiceContainer build(Vertx vertx, JsonObject cfg) {
         Pool db = buildDatabaseClient(vertx, cfg);
 
-        Repositories repositories = buildRepositories(db);
+        RowMappers rowMappers = buildRowMappers();
+        Repositories repositories = buildRepositories(db, rowMappers);
         Services services = buildServices(repositories);
         Handlers handlers = buildHandlers(services);
 
@@ -35,14 +40,21 @@ public final class AppComponentBuilder {
         return DefaultDatabaseClientFactory.createClient(v, cfg);
     }
 
+    private static RowMappers buildRowMappers() {
+        return new RowMappers(
+                new CourseRowMapper(),
+                new StudentRowMapper(),
+                new DepartmentRowMapper(),
+                new TeacherRowMapper());
+    }
 
-    private static Repositories buildRepositories(Pool db) {
+    private static Repositories buildRepositories(Pool db, RowMappers mappers) {
         return new Repositories(
-                new EnrollmentRepository(db),
-                new CourseRepository(db),
-                new StudentRepository(db),
-                new TeacherRepository(db),
-                new DepartmentRepository(db)
+                new EnrollmentRepository(db, mappers.courseRowMapper(), mappers.studentRowMapper()),
+                new CourseRepository(db, mappers.courseRowMapper()),
+                new StudentRepository(db, mappers.studentRowMapper()),
+                new TeacherRepository(db, mappers.teacherRowMapper()),
+                new DepartmentRepository(db, mappers.departmentRowMapper())
         );
     }
 

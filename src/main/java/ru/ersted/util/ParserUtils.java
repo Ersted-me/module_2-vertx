@@ -1,8 +1,10 @@
 package ru.ersted.util;
 
-public class ParserUtil {
-    private ParserUtil() {
-    }
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ParserUtils {
 
     public static int parseIntOrDefault(String value, int defaultValue) {
         try {
@@ -11,4 +13,5 @@ public class ParserUtil {
             return defaultValue;
         }
     }
+
 }
