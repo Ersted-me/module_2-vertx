@@ -1,30 +1,24 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import ru.ersted.service.DepartmentService;
+import lombok.RequiredArgsConstructor;
 import ru.ersted.module_2vertx.dto.generated.DepartmentCreateRq;
+import ru.ersted.service.DepartmentService;
+import ru.ersted.util.ApiResponse;
 
+@RequiredArgsConstructor
 public class DepartmentHandler {
 
     private final DepartmentService departmentService;
 
-    public DepartmentHandler(DepartmentService departmentService) {
-        this.departmentService = departmentService;
-    }
 
     public void create(RoutingContext context) {
-        JsonObject json = context.body().asJsonObject();
-        DepartmentCreateRq rq = json.mapTo(DepartmentCreateRq.class);
+        DepartmentCreateRq rq = context.body().asJsonObject().mapTo(DepartmentCreateRq.class);
 
         departmentService.create(rq)
-                .onSuccess(department -> {
-                    context.response()
-                            .setStatusCode(HttpResponseStatus.CREATED.code())
-                            .putHeader("content-type", "application/json")
-                            .end(JsonObject.mapFrom(department).encode());
-                });
+                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
+                .onFailure(context::fail);
 
     }
 
@@ -33,12 +27,8 @@ public class DepartmentHandler {
         Long teacherId = Long.parseLong(context.pathParam("teacherId"));
 
         departmentService.assigningHeadOfDepartment(departmentId, teacherId)
-                .onSuccess(department -> {
-                    context.response()
-                            .setStatusCode(HttpResponseStatus.CREATED.code())
-                            .putHeader("content-type", "application/json")
-                            .end(JsonObject.mapFrom(department).encode());
-                });
+                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
+                .onFailure(context::fail);
     }
 
 }

@@ -84,8 +84,7 @@ public final class AppComponentBuilder {
         CourseHandler courseHandler = new CourseHandler(services.course());
         StudentHandler studentHandler = new StudentHandler(services.student(), services.enrollment());
         DepartmentHandler departmentHandler = new DepartmentHandler(services.department());
-        TeacherHandler teacherHandler = new TeacherHandler(services.teacher());
-        teacherHandler.setCourseService(services.course());
+        TeacherHandler teacherHandler = new TeacherHandler(services.teacher(), services.course());
 
         return new Handlers(courseHandler, studentHandler, departmentHandler, teacherHandler);
     }

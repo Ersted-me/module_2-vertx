@@ -5,10 +5,13 @@ import io.vertx.ext.web.Router;
 import lombok.extern.slf4j.Slf4j;
 import ru.ersted.config.di.ServiceContainer;
 import ru.ersted.config.server.ServerConfig;
+import ru.ersted.exception.handler.GlobalErrorHandler;
 import ru.ersted.handler.CourseHandler;
 import ru.ersted.handler.DepartmentHandler;
 import ru.ersted.handler.StudentHandler;
 import ru.ersted.handler.TeacherHandler;
+
+import java.util.function.Consumer;
 
 @Slf4j
 public final class ApiVerticle extends AbstractVerticle {
@@ -49,6 +52,8 @@ public final class ApiVerticle extends AbstractVerticle {
 
 
     private void registerRoutes(Router main) {
+        main.route().failureHandler(new GlobalErrorHandler());
+
         mount(main, API_V1_PATTERN.formatted("courses"), r -> {
             r.post().handler(courseHandler::create);
             r.get().handler(courseHandler::getAll);
@@ -77,7 +82,7 @@ public final class ApiVerticle extends AbstractVerticle {
         });
     }
 
-    private void mount(Router root, String path, java.util.function.Consumer<Router> configurer) {
+    private void mount(Router root, String path, Consumer<Router> configurer) {
         Router sub = Router.router(vertx);
         configurer.accept(sub);
         root.route(path).subRouter(sub);

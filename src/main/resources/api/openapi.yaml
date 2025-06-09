@@ -188,3 +188,25 @@ components:
         department:
           $ref: '#/components/schemas/DepartmentShortDto'
           nullable: true
+
+    ExceptionResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path

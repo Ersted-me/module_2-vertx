@@ -1,36 +1,28 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import ru.ersted.module_2vertx.dto.generated.TeacherCreateRq;
 import ru.ersted.service.CourseService;
 import ru.ersted.service.TeacherService;
+import ru.ersted.util.ApiResponse;
 import ru.ersted.util.ParserUtil;
 
+@RequiredArgsConstructor
 public class TeacherHandler {
 
     private final TeacherService teacherService;
 
-    @Setter
-    private CourseService courseService;
+    private final CourseService courseService;
 
-    public TeacherHandler(TeacherService teacherService) {
-        this.teacherService = teacherService;
-    }
 
     public void create(RoutingContext context) {
-        JsonObject json = context.body().asJsonObject();
-        TeacherCreateRq rq = json.mapTo(TeacherCreateRq.class);
+        TeacherCreateRq rq = context.body().asJsonObject().mapTo(TeacherCreateRq.class);
 
         teacherService.create(rq)
-                .onSuccess(teacher -> {
-                    context.response()
-                            .setStatusCode(HttpResponseStatus.OK.code())
-                            .putHeader("content-type", "application/json")
-                            .end(JsonObject.mapFrom(teacher).encode());
-                });
+                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
+                .onFailure(context::fail);
 
     }
 
@@ -39,12 +31,8 @@ public class TeacherHandler {
         Long coursesId = Long.parseLong(context.pathParam("coursesId"));
 
         courseService.assigningTeacher(coursesId, teacherId)
-                .onSuccess(course -> {
-                    context.response()
-                            .setStatusCode(HttpResponseStatus.OK.code())
-                            .putHeader("content-type", "application/json")
-                            .end(JsonObject.mapFrom(course).encode());
-                });
+                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.OK, element))
+                .onFailure(context::fail);
 
     }
 
@@ -53,12 +41,8 @@ public class TeacherHandler {
         int offset = ParserUtil.parseIntOrDefault(context.request().getParam("offset"), 0);
 
         teacherService.getAll(limit, offset)
-                .onSuccess(teachers -> {
-                    context.response()
-                            .setStatusCode(HttpResponseStatus.OK.code())
-                            .putHeader("content-type", "application/json")
-                            .end(JsonObject.mapFrom(teachers).encode());
-                });
+                .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))
+                .onFailure(context::fail);
     }
 
 }

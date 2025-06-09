@@ -1,4 +1,4 @@
-package ru.ersted;
+package ru.ersted.config.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -8,8 +8,6 @@ import ru.ersted.config.ConfigKeys;
 import ru.ersted.config.di.builder.AppComponentBuilder;
 import ru.ersted.config.di.ServiceContainer;
 import ru.ersted.config.server.ServerConfig;
-import ru.ersted.config.verticle.ApiVerticle;
-import ru.ersted.config.verticle.HealthVerticle;
 
 @Slf4j
 public class MainVerticle extends AbstractVerticle {
