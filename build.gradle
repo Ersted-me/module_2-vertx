@@ -52,6 +52,9 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     runtimeOnly "org.slf4j:slf4j-simple:$slf4jVersion"
 
+    // HEALTH-CHECK
+    implementation "io.vertx:vertx-health-check:$vertxVersion"
+
 }
 
 test {

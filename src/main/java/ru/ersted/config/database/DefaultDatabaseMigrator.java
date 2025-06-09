@@ -1,8 +1,9 @@
-package ru.ersted.config;
+package ru.ersted.config.database;
 
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import ru.ersted.config.ConfigKeys;
 
 
 @Slf4j

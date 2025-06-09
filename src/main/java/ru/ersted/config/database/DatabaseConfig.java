@@ -1,4 +1,4 @@
-package ru.ersted.config;
+package ru.ersted.config.database;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.SslMode;

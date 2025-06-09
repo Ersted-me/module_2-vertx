@@ -1,4 +1,4 @@
-package ru.ersted.config;
+package ru.ersted.config.database;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -6,6 +6,7 @@ import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.extern.slf4j.Slf4j;
+import ru.ersted.config.ConfigKeys;
 
 @Slf4j
 public class DefaultDatabaseClientFactory {
