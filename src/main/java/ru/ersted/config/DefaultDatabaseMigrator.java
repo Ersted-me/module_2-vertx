@@ -1,24 +1,33 @@
 package ru.ersted.config;
 
 import io.vertx.core.json.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 
 
+@Slf4j
 public class DefaultDatabaseMigrator {
 
     public static void migrate(JsonObject config) {
-        JsonObject dbConfig = config.getJsonObject("db");
+        DatabaseConfig dbConfig = new DatabaseConfig(config.getJsonObject(ConfigKeys.DATABASE));
 
-        String jdbcUrl = "jdbc:postgresql://" +
-                dbConfig.getString("host") + ":" +
-                dbConfig.getInteger("port") + "/" +
-                dbConfig.getString("database");
+        String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s",
+                dbConfig.getHost(), dbConfig.getPort(), dbConfig.getDatabase());
 
-        Flyway flyway = Flyway.configure()
-                .dataSource(jdbcUrl, dbConfig.getString("user"), dbConfig.getString("password"))
-                .load();
+        log.info("Starting Flyway migration for DB {} at {}:{}", dbConfig.getDatabase(), dbConfig.getHost(), dbConfig.getPort());
 
-        flyway.migrate();
+        try {
+            Flyway flyway = Flyway.configure()
+                    .dataSource(jdbcUrl, dbConfig.getUser(), dbConfig.getPassword())
+                    .load();
+
+            flyway.migrate();
+
+            log.info("Flyway migration completed successfully.");
+        } catch (Exception e) {
+            log.error("Flyway migration failed: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
 }

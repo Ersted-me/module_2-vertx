@@ -1,11 +1,12 @@
 {
-  "db": {
+  "datasource": {
     "host": "localhost",
     "port": 5432,
     "database": "postgres",
     "user": "postgres",
     "password": "postgres",
-    "maxPoolSize": 50
+    "maxPoolSize": 50,
+    "sslMode": "disable"
   },
   "server": {
     "http": {

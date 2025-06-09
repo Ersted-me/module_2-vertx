@@ -48,6 +48,10 @@ dependencies {
     // DATABASE Utils
     implementation "com.ongres.scram:client:$comOngresScramClient"
 
+    // LOG
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    runtimeOnly "org.slf4j:slf4j-simple:$slf4jVersion"
+
 }
 
 test {
