@@ -27,6 +27,7 @@ public class MainVerticle extends AbstractVerticle {
 
         deployVerticle(new ApiVerticle(serviceContainer, serverConfig));
         deployVerticle(new HealthVerticle(serviceContainer, serverConfig));
+        deployVerticle(new MetricsVerticle(serverConfig));
 
     }
 

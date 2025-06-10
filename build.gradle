@@ -67,6 +67,10 @@ dependencies {
     // HEALTH-CHECK
     implementation "io.vertx:vertx-health-check:$vertxVersion"
 
+    // METRICS
+    implementation "io.vertx:vertx-micrometer-metrics:$vertxVersion"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.12.3"
+
 }
 
 test {
