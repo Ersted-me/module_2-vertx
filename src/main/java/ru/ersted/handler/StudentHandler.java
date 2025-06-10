@@ -60,9 +60,7 @@ public class StudentHandler {
         Long id = Long.parseLong(context.pathParam("id"));
 
         studentService.delete(id)
-                .onSuccess(nothing ->
-                        ApiResponse.send(context, HttpResponseStatus.OK, "Student deleted successfully")
-                )
+                .onSuccess(nothing -> ApiResponse.send(context, HttpResponseStatus.OK, "Student deleted successfully"))
                 .onFailure(context::fail);
 
     }

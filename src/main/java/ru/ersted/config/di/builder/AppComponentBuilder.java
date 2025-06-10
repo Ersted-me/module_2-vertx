@@ -3,6 +3,7 @@ package ru.ersted.config.di.builder;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Pool;
+import ru.ersted.config.TransactionalOperator;
 import ru.ersted.config.database.DefaultDatabaseClientFactory;
 import ru.ersted.config.di.ServiceContainer;
 import ru.ersted.handler.CourseHandler;
@@ -20,10 +21,11 @@ public final class AppComponentBuilder {
 
     public static ServiceContainer build(Vertx vertx, JsonObject cfg) {
         Pool db = buildDatabaseClient(vertx, cfg);
+        TransactionalOperator transactionalOperator = new TransactionalOperator(db);
 
         RowMappers rowMappers = buildRowMappers();
         Repositories repositories = buildRepositories(db, rowMappers);
-        Services services = buildServices(repositories);
+        Services services = buildServices(repositories, transactionalOperator);
         Handlers handlers = buildHandlers(services);
 
         return new ServiceContainer.Builder()
@@ -59,17 +61,17 @@ public final class AppComponentBuilder {
     }
 
 
-    private static Services buildServices(Repositories repositories) {
+    private static Services buildServices(Repositories repositories, TransactionalOperator transactionalOperator) {
 
         CourseEnrichmentService courseEnrich = new CourseEnrichmentService();
         StudentEnrichmentService studentEnrich = new StudentEnrichmentService();
         TeacherEnrichmentService teacherEnrich = new TeacherEnrichmentService();
 
-        EnrollmentService enrollment = new EnrollmentService(repositories.enrollment());
-        CourseService course = new CourseService(repositories.course(), courseEnrich);
+        EnrollmentService enrollment = new EnrollmentService(repositories.enrollment(), transactionalOperator);
+        CourseService course = new CourseService(repositories.course(), repositories.teacher(), courseEnrich, transactionalOperator);
         StudentService student = new StudentService(repositories.student());
         TeacherService teacher = new TeacherService(repositories.teacher());
-        DepartmentService department = new DepartmentService(repositories.department());
+        DepartmentService department = new DepartmentService(repositories.department(), repositories.teacher(), transactionalOperator);
 
 
         courseEnrich.setEnrollmentService(enrollment);
@@ -80,6 +82,8 @@ public final class AppComponentBuilder {
 
         enrollment.setStudentService(student);
         enrollment.setCourseEnrichmentService(courseEnrich);
+        enrollment.setCourseRepository(repositories.course());
+        enrollment.setStudentRepository(repositories.student());
 
         teacherEnrich.setCourseService(course);
         teacherEnrich.setDepartmentService(department);

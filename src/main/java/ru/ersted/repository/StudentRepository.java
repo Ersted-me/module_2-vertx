@@ -2,6 +2,7 @@ package ru.ersted.repository;
 
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import ru.ersted.exception.NotFoundException;
@@ -11,6 +12,7 @@ import ru.ersted.util.RowMapperUtils;
 import ru.ersted.util.RowSetUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 import static ru.ersted.repository.constant.StudentColumn.ID;
 import static ru.ersted.repository.query.StudentQueryProvider.*;
@@ -33,13 +35,16 @@ public class StudentRepository {
                 });
     }
 
-    public Future<Student> findById(Long id) {
-
+    public Future<Optional<Student>> findById(Long id) {
         return client.preparedQuery(FIND_BY_ID_SQL)
                 .execute(Tuple.of(id))
-                .map(rows -> RowSetUtils.firstRow(rows, rowMapper)
-                        .orElseThrow(() -> new NotFoundException("Student with id '%s' not found".formatted(id)))
-                );
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
+    }
+
+    public Future<Optional<Student>> findById(SqlConnection connection, Long id) {
+        return connection.preparedQuery(FIND_BY_ID_SQL)
+                .execute(Tuple.of(id))
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
     }
 
     public Future<List<Student>> getAll(int limit, int offset) {
@@ -49,17 +54,20 @@ public class StudentRepository {
                 .map(rows -> RowMapperUtils.toList(rows, rowMapper));
     }
 
-    public Future<Student> update(Long id, Student student) {
+    public Future<Optional<Student>> update(Long id, Student student) {
 
         return client.preparedQuery(UPDATE_SQL)
                 .execute(Tuple.of(student.getName(), student.getEmail(), id))
                 .map(rows -> {
-                    if (RowSetUtils.noRowsAffected(rows)) {
-                        throw new NotFoundException("Student with id '%s' not found".formatted(id));
-                    } else {
+                    Optional<Student> optionalStudent = RowSetUtils.firstRow(rows, rowMapper);
+
+                    if (optionalStudent.isPresent()) {
                         student.setId(id);
-                        return student;
+                        return Optional.of(student);
+                    } else {
+                        return Optional.empty();
                     }
+
                 });
     }
 

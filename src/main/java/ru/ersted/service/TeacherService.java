@@ -2,6 +2,7 @@ package ru.ersted.service;
 
 import io.vertx.core.Future;
 import lombok.Setter;
+import ru.ersted.exception.NotFoundException;
 import ru.ersted.mapper.TeacherMapper;
 import ru.ersted.model.Teacher;
 import ru.ersted.module_2vertx.dto.generated.TeacherCreateRq;
@@ -46,7 +47,13 @@ public class TeacherService {
     }
 
     public Future<Teacher> findById(Long teacherId) {
-        return teacherRepository.findById(teacherId);
+        return teacherRepository.findById(teacherId)
+                .compose(optionalTeacher -> optionalTeacher
+                        .map(Future::succeededFuture)
+                        .orElseGet(() -> Future.failedFuture(
+                                new NotFoundException("Teacher with id '%d' not found".formatted(teacherId)))
+                        )
+                );
     }
 
 }

@@ -1,12 +1,10 @@
 package ru.ersted.repository;
 
 import io.vertx.core.Future;
-import io.vertx.pgclient.PgException;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.exception.DuplicateException;
-import ru.ersted.exception.NotFoundException;
 import ru.ersted.model.Course;
 import ru.ersted.model.Student;
 import ru.ersted.repository.mapper.RowMapper;
@@ -21,8 +19,6 @@ import static ru.ersted.repository.query.EnrollmentQueryProvider.*;
 @RequiredArgsConstructor
 public class EnrollmentRepository {
 
-    private final static String FOREIGN_KEY_VIOLATION_CODE = "23503";
-
     private final Pool client;
 
     private final RowMapper<Course> courseRowMapper;
@@ -30,22 +26,11 @@ public class EnrollmentRepository {
     private final RowMapper<Student> studentRowMapper;
 
 
-    public Future<Void> enrollStudentToCourse(Long studentId, Long courseId) {
+    public Future<Boolean> enrollStudentToCourse(SqlConnection connection, Long studentId, Long courseId) {
 
-        return client.preparedQuery(ENROLL_STUDENT_TO_COURSE_SQL)
+        return connection.preparedQuery(ENROLL_STUDENT_TO_COURSE_SQL)
                 .execute(Tuple.of(studentId, courseId))
-                .compose(rows -> RowSetUtils.noRowsAffected(rows)
-                                ? Future.failedFuture(
-                                new DuplicateException(
-                                        "Pair Student/Course with id '%s' and '%s' already exists"
-                                                .formatted(studentId, courseId)))
-                                : Future.succeededFuture(),
-                        err -> isForeignKeyViolation(err)
-                                ? Future.failedFuture(new NotFoundException(
-                                "Student or Course with id '%s' and '%s' not found"
-                                        .formatted(studentId, courseId)))
-                                : Future.failedFuture(err)
-                );
+                .map(RowSetUtils::noRowsAffected);
     }
 
     public Future<List<Course>> getCoursesByStudentId(Long studentId) {
@@ -59,10 +44,6 @@ public class EnrollmentRepository {
         return client.preparedQuery(STUDENTS_BY_COURSE_ID)
                 .execute(Tuple.of(courseId))
                 .map(rows -> RowMapperUtils.toList(rows, studentRowMapper));
-    }
-
-    private boolean isForeignKeyViolation(Throwable t) {
-        return t instanceof PgException pg && FOREIGN_KEY_VIOLATION_CODE.equals(pg.getSqlState());
     }
 
 }

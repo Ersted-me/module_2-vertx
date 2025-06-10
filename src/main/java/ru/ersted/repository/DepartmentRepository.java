@@ -2,12 +2,14 @@ package ru.ersted.repository;
 
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.exception.NotFoundException;
 import ru.ersted.model.Department;
 import ru.ersted.repository.mapper.RowMapper;
 import ru.ersted.util.RowSetUtils;
+
+import java.util.Optional;
 
 import static ru.ersted.repository.constant.DepartmentColumn.ID;
 import static ru.ersted.repository.query.DepartmentQueryProvider.*;
@@ -29,24 +31,18 @@ public class DepartmentRepository {
                 });
     }
 
-    public Future<Void> assigningHeadOfDepartment(Long departmentId, Long teacherId) {
+    public Future<Optional<Department>> assigningHeadOfDepartment(SqlConnection connection, Long departmentId, Long teacherId) {
 
-        return client.preparedQuery(ASSIGN_HEAD_OF_DEPARTMENT_SQL)
+        return connection.preparedQuery(ASSIGN_HEAD_OF_DEPARTMENT_SQL)
                 .execute(Tuple.of(teacherId, departmentId))
-                .compose(rows -> RowSetUtils.noRowsAffected(rows)
-                        ? Future.succeededFuture()
-                        : Future.failedFuture(new NotFoundException("Department with id '%s' not found"))
-                );
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
     }
 
-    public Future<Department> findById(Long departmentId) {
+    public Future<Optional<Department>> findById(Long departmentId) {
 
         return client.preparedQuery(FIND_BY_ID_SQL)
                 .execute(Tuple.of(departmentId))
-                .compose(rows -> rows.iterator().hasNext()
-                        ? Future.succeededFuture(rowMapper.map(rows.iterator().next()))
-                        : Future.failedFuture(new NotFoundException("Department with id '%s' not found"))
-                );
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
     }
 
 }

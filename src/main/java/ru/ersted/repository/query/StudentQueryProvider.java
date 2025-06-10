@@ -12,7 +12,7 @@ public final class StudentQueryProvider {
 
     public static final String GET_ALL_SQL = "SELECT * FROM student LIMIT $1 OFFSET $2";
 
-    public static final String UPDATE_SQL = "UPDATE student SET name = $1, email = $2 WHERE id = $3";
+    public static final String UPDATE_SQL = "UPDATE student SET name = $1, email = $2 WHERE id = $3 RETURNING *";
 
     public static final String DELETE_SQL = "DELETE FROM student WHERE id = $1";
 

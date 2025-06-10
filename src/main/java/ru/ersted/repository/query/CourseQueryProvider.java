@@ -16,7 +16,7 @@ public final class CourseQueryProvider {
             "SELECT * FROM course WHERE id = $1";
 
     public static final String UPDATE_TEACHER_ID =
-            "UPDATE course SET teacher_id = $1 WHERE id = $2";
+            "UPDATE course SET teacher_id = $1 WHERE id = $2 RETURNING *";
 
     public static final String FIND_BY_TEACHER_ID =
             "SELECT * FROM course WHERE teacher_id = $1";

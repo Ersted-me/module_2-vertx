@@ -2,15 +2,16 @@ package ru.ersted.repository;
 
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.exception.NotFoundException;
 import ru.ersted.model.Teacher;
 import ru.ersted.repository.mapper.RowMapper;
 import ru.ersted.util.RowMapperUtils;
 import ru.ersted.util.RowSetUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 import static ru.ersted.repository.query.TeacherQueryProvider.*;
 
@@ -39,13 +40,18 @@ public class TeacherRepository {
                 .map(rows -> RowMapperUtils.toList(rows, rowMapper));
     }
 
-    public Future<Teacher> findById(Long teacherId) {
+    public Future<Optional<Teacher>> findById(Long teacherId) {
 
         return client.preparedQuery(FIND_BY_ID_SQL)
                 .execute(Tuple.of(teacherId))
-                .map(rows -> RowSetUtils.firstRow(rows, rowMapper)
-                        .orElseThrow(() -> new NotFoundException("Teacher with id '%s' not found".formatted(teacherId)))
-                );
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
+    }
+
+    public Future<Optional<Teacher>> findById(SqlConnection connection, Long teacherId) {
+
+        return connection.preparedQuery(FIND_BY_ID_SQL)
+                .execute(Tuple.of(teacherId))
+                .map(rows -> RowSetUtils.firstRow(rows, rowMapper));
     }
 
 }
