@@ -15,7 +15,8 @@ public class DefaultDatabaseMigrator {
         String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s",
                 dbConfig.getHost(), dbConfig.getPort(), dbConfig.getDatabase());
 
-        log.info("Starting Flyway migration for DB {} at {}:{}", dbConfig.getDatabase(), dbConfig.getHost(), dbConfig.getPort());
+        log.info("Starting Flyway migration for DB {} at {}:{}",
+                dbConfig.getDatabase(), dbConfig.getHost(), dbConfig.getPort());
 
         try {
             Flyway flyway = Flyway.configure()

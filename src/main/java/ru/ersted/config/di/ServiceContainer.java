@@ -18,11 +18,11 @@ public final class ServiceContainer {
     private final TeacherHandler teacherHandler;
 
     private ServiceContainer(Builder builder) {
-        this.databaseClient     = builder.databaseClient;
-        this.courseHandler      = builder.courseHandler;
-        this.studentHandler     = builder.studentHandler;
-        this.departmentHandler  = builder.departmentHandler;
-        this.teacherHandler     = builder.teacherHandler;
+        this.databaseClient = builder.databaseClient;
+        this.courseHandler = builder.courseHandler;
+        this.studentHandler = builder.studentHandler;
+        this.departmentHandler = builder.departmentHandler;
+        this.teacherHandler = builder.teacherHandler;
     }
 
 
@@ -33,11 +33,30 @@ public final class ServiceContainer {
         private DepartmentHandler departmentHandler;
         private TeacherHandler teacherHandler;
 
-        public Builder databaseClient(Pool client)                     { this.databaseClient = client; return this; }
-        public Builder courseHandler(CourseHandler handler)              { this.courseHandler = handler; return this; }
-        public Builder studentHandler(StudentHandler handler)            { this.studentHandler = handler; return this; }
-        public Builder departmentHandler(DepartmentHandler handler)      { this.departmentHandler = handler; return this; }
-        public Builder teacherHandler(TeacherHandler handler)            { this.teacherHandler = handler; return this; }
+        public Builder databaseClient(Pool client) {
+            this.databaseClient = client;
+            return this;
+        }
+
+        public Builder courseHandler(CourseHandler handler) {
+            this.courseHandler = handler;
+            return this;
+        }
+
+        public Builder studentHandler(StudentHandler handler) {
+            this.studentHandler = handler;
+            return this;
+        }
+
+        public Builder departmentHandler(DepartmentHandler handler) {
+            this.departmentHandler = handler;
+            return this;
+        }
+
+        public Builder teacherHandler(TeacherHandler handler) {
+            this.teacherHandler = handler;
+            return this;
+        }
 
         public ServiceContainer build() {
 

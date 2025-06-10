@@ -1,6 +1,12 @@
+import com.github.spotbugs.snom.Confidence
+import com.github.spotbugs.snom.Effort
+
 plugins {
     id 'java'
     id 'org.openapi.generator' version "$orgOpenapiGenerator"
+    id 'checkstyle'
+    id 'jacoco'
+    id 'com.github.spotbugs' version '6.0.15'
 }
 
 group = 'ru.ersted'
@@ -10,6 +16,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of("$javaVersion")
     }
+}
+
+jacoco {
+    toolVersion = "0.8.10"
 }
 
 repositories {
@@ -22,6 +32,8 @@ dependencies {
     implementation "io.vertx:vertx-config:$vertxVersion"
     implementation "io.vertx:vertx-pg-client:$vertxVersion"
 
+    testImplementation 'org.testcontainers:testcontainers:1.19.3'
+    testImplementation 'org.testcontainers:postgresql:1.19.3'
     testImplementation platform("org.junit:junit-bom:$orgJunitJunitBom")
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
@@ -91,3 +103,32 @@ compileJava {
     dependsOn tasks.openApiGenerate
     source layout.buildDirectory.dir('generated/src/main/java')
 }
+
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+}
+
+checkstyle {
+    toolVersion = '10.12.2'
+}
+
+spotbugs {
+    toolVersion = '4.7.3'
+    ignoreFailures = false
+    effort = Effort.valueOf('MAX')
+    reportLevel = Confidence.valueOf('LOW')
+}
+
+spotbugsMain {
+    reports {
+        html.required = true
+        xml.required = false
+    }
+}
+

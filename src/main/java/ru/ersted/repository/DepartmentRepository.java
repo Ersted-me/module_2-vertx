@@ -31,7 +31,10 @@ public class DepartmentRepository {
                 });
     }
 
-    public Future<Optional<Department>> assigningHeadOfDepartment(SqlConnection connection, Long departmentId, Long teacherId) {
+    public Future<Optional<Department>> assigningHeadOfDepartment(
+            SqlConnection connection,
+            Long departmentId,
+            Long teacherId) {
 
         return connection.preparedQuery(ASSIGN_HEAD_OF_DEPARTMENT_SQL)
                 .execute(Tuple.of(teacherId, departmentId))

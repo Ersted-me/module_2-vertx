@@ -68,10 +68,14 @@ public final class AppComponentBuilder {
         TeacherEnrichmentService teacherEnrich = new TeacherEnrichmentService();
 
         EnrollmentService enrollment = new EnrollmentService(repositories.enrollment(), transactionalOperator);
-        CourseService course = new CourseService(repositories.course(), repositories.teacher(), courseEnrich, transactionalOperator);
+        CourseService course = new CourseService(
+                repositories.course(), repositories.teacher(), courseEnrich, transactionalOperator
+        );
         StudentService student = new StudentService(repositories.student());
         TeacherService teacher = new TeacherService(repositories.teacher());
-        DepartmentService department = new DepartmentService(repositories.department(), repositories.teacher(), transactionalOperator);
+        DepartmentService department = new DepartmentService(
+                repositories.department(), repositories.teacher(), transactionalOperator
+        );
 
 
         courseEnrich.setEnrollmentService(enrollment);
