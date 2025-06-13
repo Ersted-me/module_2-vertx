@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import ru.ersted.exception.BadRequestException;
 import ru.ersted.exception.DuplicateException;
 import ru.ersted.exception.NotFoundException;
 import ru.ersted.module_2vertx.dto.generated.ExceptionResponse;
@@ -20,7 +21,9 @@ public class GlobalErrorHandler implements Handler<RoutingContext> {
 
         HttpResponseStatus status;
 
-        if (cause instanceof NotFoundException) {
+        if (cause instanceof BadRequestException) {
+            status = HttpResponseStatus.BAD_REQUEST;
+        } else if (cause instanceof NotFoundException) {
             status = HttpResponseStatus.NOT_FOUND;
         } else if (cause instanceof DuplicateException) {
             status = HttpResponseStatus.CONFLICT;

@@ -1,4 +1,4 @@
-package ru.ersted.config.di.builder;
+package ru.ersted.config.di;
 
 import ru.ersted.repository.mapper.CourseRowMapper;
 import ru.ersted.repository.mapper.DepartmentRowMapper;

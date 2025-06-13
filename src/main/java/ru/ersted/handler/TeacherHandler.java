@@ -1,48 +1,53 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.module_2vertx.dto.generated.TeacherCreateRq;
-import ru.ersted.service.CourseService;
-import ru.ersted.service.TeacherService;
 import ru.ersted.util.ApiResponse;
-import ru.ersted.util.ParserUtils;
+import ru.ersted.util.Paging;
+import ru.ersted.util.RequestUtil;
+
+import static ru.ersted.constant.EventBusAddress.*;
+import static ru.ersted.exception.util.ExceptionUtil.processException;
 
 @RequiredArgsConstructor
 public class TeacherHandler {
 
-    private final TeacherService teacherService;
+    public void create(RoutingContext context, Vertx vertx) {
 
-    private final CourseService courseService;
+        JsonObject request = RequestUtil.requireJsonBody(context);
 
-
-    public void create(RoutingContext context) {
-        TeacherCreateRq rq = context.body().asJsonObject().mapTo(TeacherCreateRq.class);
-
-        teacherService.create(rq)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
-                .onFailure(context::fail);
+        vertx.eventBus().<JsonObject>request(TEACHER_CREATE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.CREATED, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void assigningTeacherToCourse(RoutingContext context) {
-        Long teacherId = Long.parseLong(context.pathParam("teacherId"));
-        Long coursesId = Long.parseLong(context.pathParam("coursesId"));
+    public void assigningTeacherToCourse(RoutingContext context, Vertx vertx) {
 
-        courseService.assigningTeacher(coursesId, teacherId)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.OK, element))
-                .onFailure(context::fail);
+        JsonObject request = new JsonObject();
+
+        request.put("teacherId", context.pathParam("teacherId"));
+        request.put("coursesId", context.pathParam("coursesId"));
+
+        vertx.eventBus().<JsonObject>request(TEACHER_ASSIGNING_TEACHER_TO_COURSE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void findAll(RoutingContext context) {
-        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
+    public void findAll(RoutingContext context, Vertx vertx) {
 
-        teacherService.getAll(limit, offset)
-                .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))
-                .onFailure(context::fail);
+        Paging paging = Paging.fromQuery(context);
+
+        JsonObject request = paging.toJson();
+
+        vertx.eventBus().<JsonObject>request(TEACHER_GET_ALL.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
+
     }
 
 }

@@ -1,11 +1,10 @@
-package ru.ersted.config.di.builder;
+package ru.ersted.config.di;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Pool;
 import ru.ersted.config.TransactionalOperator;
 import ru.ersted.config.database.DefaultDatabaseClientFactory;
-import ru.ersted.config.di.ServiceContainer;
 import ru.ersted.handler.CourseHandler;
 import ru.ersted.handler.DepartmentHandler;
 import ru.ersted.handler.StudentHandler;
@@ -26,14 +25,13 @@ public final class AppComponentBuilder {
         RowMappers rowMappers = buildRowMappers();
         Repositories repositories = buildRepositories(db, rowMappers);
         Services services = buildServices(repositories, transactionalOperator);
-        Handlers handlers = buildHandlers(services);
+        Handlers handlers = buildHandlers();
 
         return new ServiceContainer.Builder()
                 .databaseClient(db)
-                .courseHandler(handlers.course())
-                .studentHandler(handlers.student())
-                .departmentHandler(handlers.department())
-                .teacherHandler(handlers.teacher())
+                .handlers(handlers)
+                .services(services)
+                .repositories(repositories)
                 .build();
     }
 
@@ -100,11 +98,11 @@ public final class AppComponentBuilder {
     }
 
 
-    private static Handlers buildHandlers(Services services) {
-        CourseHandler courseHandler = new CourseHandler(services.course());
-        StudentHandler studentHandler = new StudentHandler(services.student(), services.enrollment());
-        DepartmentHandler departmentHandler = new DepartmentHandler(services.department());
-        TeacherHandler teacherHandler = new TeacherHandler(services.teacher(), services.course());
+    private static Handlers buildHandlers() {
+        CourseHandler courseHandler = new CourseHandler();
+        StudentHandler studentHandler = new StudentHandler();
+        DepartmentHandler departmentHandler = new DepartmentHandler();
+        TeacherHandler teacherHandler = new TeacherHandler();
 
         return new Handlers(courseHandler, studentHandler, departmentHandler, teacherHandler);
     }

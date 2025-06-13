@@ -1,8 +1,8 @@
-package ru.ersted.config.di.builder;
+package ru.ersted.config.di;
 
 import ru.ersted.service.*;
 
-record Services(
+public record Services(
         EnrollmentService enrollment,
         CourseService course,
         StudentService student,

@@ -1,34 +1,39 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.module_2vertx.dto.generated.DepartmentCreateRq;
-import ru.ersted.service.DepartmentService;
 import ru.ersted.util.ApiResponse;
+import ru.ersted.util.RequestUtil;
+
+import static ru.ersted.constant.EventBusAddress.DEPARTMENT_ASSIGNING_HEAD_OF_DEPARTMENT;
+import static ru.ersted.constant.EventBusAddress.DEPARTMENT_CREATE;
+import static ru.ersted.exception.util.ExceptionUtil.processException;
 
 @RequiredArgsConstructor
 public class DepartmentHandler {
 
-    private final DepartmentService departmentService;
 
+    public void create(RoutingContext context, Vertx vertx) {
 
-    public void create(RoutingContext context) {
-        DepartmentCreateRq rq = context.body().asJsonObject().mapTo(DepartmentCreateRq.class);
+        JsonObject request = RequestUtil.requireJsonBody(context);
 
-        departmentService.create(rq)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
-                .onFailure(context::fail);
-
+        vertx.eventBus().<JsonObject>request(DEPARTMENT_CREATE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.CREATED, resp.body()))
+                .onFailure(processException(context));
     }
 
-    public void assigningHeadOfDepartment(RoutingContext context) {
-        Long departmentId = Long.parseLong(context.pathParam("departmentId"));
-        Long teacherId = Long.parseLong(context.pathParam("teacherId"));
+    public void assigningHeadOfDepartment(RoutingContext context, Vertx vertx) {
 
-        departmentService.assigningHeadOfDepartment(departmentId, teacherId)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
-                .onFailure(context::fail);
+        JsonObject request = new JsonObject();
+        request.put("departmentId", context.pathParam("departmentId"));
+        request.put("teacherId", context.pathParam("teacherId"));
+
+        vertx.eventBus().<JsonObject>request(DEPARTMENT_ASSIGNING_HEAD_OF_DEPARTMENT.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.CREATED, resp.body()))
+                .onFailure(processException(context));
     }
 
 }

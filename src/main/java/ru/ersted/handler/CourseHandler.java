@@ -1,34 +1,40 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.module_2vertx.dto.generated.CourseCreateRq;
-import ru.ersted.service.CourseService;
 import ru.ersted.util.ApiResponse;
-import ru.ersted.util.ParserUtils;
+import ru.ersted.util.Paging;
+import ru.ersted.util.RequestUtil;
+
+import static ru.ersted.constant.EventBusAddress.COURSE_CREATE;
+import static ru.ersted.constant.EventBusAddress.COURSE_GET_ALL;
+import static ru.ersted.exception.util.ExceptionUtil.processException;
 
 @RequiredArgsConstructor
 public class CourseHandler {
 
-    private final CourseService courseService;
+    public void getAll(RoutingContext ctx, Vertx vertx) {
 
+        Paging paging = Paging.fromQuery(ctx);
 
-    public void getAll(RoutingContext context) {
-        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
+        JsonObject request = paging.toJson();
 
-        courseService.getAll(limit, offset)
-                .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))
-                .onFailure(context::fail);
+        vertx.eventBus().<JsonObject>request(COURSE_GET_ALL.name(), request)
+                .onSuccess(resp -> ApiResponse.send(ctx, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(ctx));
+
     }
 
+    public void create(RoutingContext ctx, Vertx vertx) {
 
-    public void create(RoutingContext context) {
-        CourseCreateRq courseRq = context.body().asJsonObject().mapTo(CourseCreateRq.class);
+        JsonObject request = RequestUtil.requireJsonBody(ctx);
 
-        courseService.create(courseRq)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element));
+        vertx.eventBus().<JsonObject>request(COURSE_CREATE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(ctx, HttpResponseStatus.CREATED, resp.body()))
+                .onFailure(processException(ctx));
     }
 
 }

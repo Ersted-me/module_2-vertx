@@ -1,8 +1,8 @@
-package ru.ersted.config.di.builder;
+package ru.ersted.config.di;
 
 import ru.ersted.repository.*;
 
-record Repositories(
+public record Repositories(
         EnrollmentRepository enrollment,
         CourseRepository course,
         StudentRepository student,

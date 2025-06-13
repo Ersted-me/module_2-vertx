@@ -1,86 +1,104 @@
 package ru.ersted.handler;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
-import ru.ersted.module_2vertx.dto.generated.StudentCreateRq;
-import ru.ersted.module_2vertx.dto.generated.StudentUpdateRq;
-import ru.ersted.service.EnrollmentService;
-import ru.ersted.service.StudentService;
 import ru.ersted.util.ApiResponse;
+import ru.ersted.util.Paging;
 import ru.ersted.util.ParserUtils;
+import ru.ersted.util.RequestUtil;
+
+import static ru.ersted.constant.EventBusAddress.*;
+import static ru.ersted.exception.util.ExceptionUtil.processException;
 
 @RequiredArgsConstructor
 public class StudentHandler {
 
-    private final StudentService studentService;
 
-    private final EnrollmentService enrollmentService;
+    public void create(RoutingContext context, Vertx vertx) {
 
+        JsonObject request = RequestUtil.requireJsonBody(context);
 
-    public void create(RoutingContext context) {
-        StudentCreateRq rq = context.body().asJsonObject().mapTo(StudentCreateRq.class);
-
-        studentService.create(rq)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.CREATED, element))
-                .onFailure(context::fail);
+        vertx.eventBus().<JsonObject>request(STUDENT_CREATE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.CREATED, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void getAll(RoutingContext context) {
-        int limit = ParserUtils.parseIntOrDefault(context.request().getParam("limit"), 10);
-        int offset = ParserUtils.parseIntOrDefault(context.request().getParam("offset"), 0);
+    public void getAll(RoutingContext context, Vertx vertx) {
 
-        studentService.getAll(limit, offset)
-                .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))
-                .onFailure(context::fail);
+        Paging paging = Paging.fromQuery(context);
 
-    }
+        JsonObject request = paging.toJson();
 
-    public void findById(RoutingContext context) {
-        Long studentId = Long.parseLong(context.pathParam("id"));
-
-        studentService.findById(studentId)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.OK, element))
-                .onFailure(context::fail);
+        vertx.eventBus().<JsonObject>request(STUDENT_GET_ALL.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void update(RoutingContext context) {
-        StudentUpdateRq rq = context.body().asJsonObject().mapTo(StudentUpdateRq.class);
-        Long id = Long.parseLong(context.pathParam("id"));
+    public void findById(RoutingContext context, Vertx vertx) {
 
-        studentService.update(id, rq)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.OK, element))
-                .onFailure(context::fail);
+        JsonObject request = new JsonObject();
 
-    }
+        request.put("id", context.pathParam("id"));
 
-    public void delete(RoutingContext context) {
-        Long id = Long.parseLong(context.pathParam("id"));
-
-        studentService.delete(id)
-                .onSuccess(nothing -> ApiResponse.send(context, HttpResponseStatus.OK, "Student deleted successfully"))
-                .onFailure(context::fail);
+        vertx.eventBus().<JsonObject>request(STUDENT_FIND_BY_ID.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void addCourse(RoutingContext context) {
-        Long courseId = Long.parseLong(context.pathParam("courseId"));
-        Long studentId = Long.parseLong(context.pathParam("studentId"));
+    public void update(RoutingContext context, Vertx vertx) {
 
-        enrollmentService.enrollStudentToCourse(studentId, courseId)
-                .onSuccess(element -> ApiResponse.send(context, HttpResponseStatus.OK, element))
-                .onFailure(context::fail);
+        JsonObject request = new JsonObject();
+
+        request.put("body", RequestUtil.requireJsonBody(context));
+        request.put("id", context.pathParam("id"));
+
+        vertx.eventBus().<JsonObject>request(STUDENT_UPDATE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
 
     }
 
-    public void findCourses(RoutingContext context) {
-        Long studentId = Long.parseLong(context.pathParam("studentId"));
+    public void delete(RoutingContext context, Vertx vertx) {
 
-        enrollmentService.findCoursesByStudentId(studentId)
-                .onSuccess(list -> ApiResponse.send(context, HttpResponseStatus.OK, list))
-                .onFailure(context::fail);
+        JsonObject request = new JsonObject();
+
+        request.put("id", ParserUtils.toLong(context.pathParam("id")));
+
+        vertx.eventBus().<JsonObject>request(STUDENT_DELETE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
+
+    }
+
+    public void addCourse(RoutingContext context, Vertx vertx) {
+
+        JsonObject request = new JsonObject();
+
+        request.put("courseId", context.pathParam("courseId"));
+        request.put("studentId", context.pathParam("studentId"));
+
+        vertx.eventBus().<JsonObject>request(STUDENT_ADD_COURSE.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
+
+    }
+
+    public void findCourses(RoutingContext context, Vertx vertx) {
+
+        JsonObject request = new JsonObject();
+
+        request.put("studentId", context.pathParam("studentId"));
+
+        vertx.eventBus().<JsonObject>request(STUDENT_FIND_COURSES.name(), request)
+                .onSuccess(resp -> ApiResponse.send(context, HttpResponseStatus.OK, resp.body()))
+                .onFailure(processException(context));
+
     }
 
 }

@@ -18,6 +18,14 @@ java {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
 jacoco {
     toolVersion = "0.8.10"
 }
@@ -70,6 +78,8 @@ dependencies {
     // METRICS
     implementation "io.vertx:vertx-micrometer-metrics:$vertxVersion"
     implementation "io.micrometer:micrometer-registry-prometheus:1.12.3"
+
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1"
 
 }
 
