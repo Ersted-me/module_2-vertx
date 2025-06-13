@@ -15,6 +15,8 @@ import ru.ersted.config.metrics.VertxFactory;
 import ru.ersted.config.server.ServerConfig;
 import ru.ersted.config.verticle.ApiVerticle;
 import ru.ersted.config.verticle.BackgroundVerticle;
+import ru.ersted.config.verticle.HealthVerticle;
+import ru.ersted.config.verticle.MetricsVerticle;
 
 @Slf4j
 public class Main {
@@ -67,6 +69,16 @@ public class Main {
                                 if (ar.failed())
                                     log.error("Failed to deploy ApiVerticle: {}", ar);
                             });
+
+                    vertx.deployVerticle(() -> new HealthVerticle(serviceContainer, new ServerConfig(config)), apiOpts, ar -> {
+                        if (ar.failed())
+                            log.error("Failed to deploy HealthVerticle: {}", ar);
+                    });
+
+                    vertx.deployVerticle(() -> new MetricsVerticle(new ServerConfig(config)), apiOpts, ar -> {
+                        if (ar.failed())
+                            log.error("Failed to deploy MetricsVerticle: {}", ar);
+                    });
 
                 })
                 .onFailure(error -> {
